@@ -52,36 +52,107 @@ a:hover {
 
 .header {
   display: flex;
-  gap: 1em;
+  gap: 1.5em;
   margin-top: 1em;
+  align-items: flex-start;
 }
 
 .header img {
-  width: 40%;
+  width: 25%;
+  flex-shrink: 0;
+  aspect-ratio: 1;
   object-fit: cover;
+  background-color: #d9d9d9;
 }
 
-.grid {
+.header p {
+  flex: 1;
+}
+
+.work-index {
+  margin-top: 2em;
+}
+
+.work-index table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75em;
+}
+
+.work-index tr {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.work-index td {
+  padding: 0.6em 0;
+}
+
+.work-index td.label {
+  color: #888;
+  font-size: 0.85em;
+  width: 6em;
+}
+
+/* ── Assignment page building blocks ── */
+
+.intro {
+  margin-top: 1.25em;
+  font-size: 1.1em;
+  max-width: 680px;
+}
+
+figure {
+  margin: 0;
+}
+
+figcaption {
+  margin-top: 0.35em;
+  font-size: 0.8em;
+  color: #888;
+}
+
+.hero {
+  margin-top: 1.5em;
+}
+
+.hero img {
+  width: 100%;
+  min-height: 320px;
+  max-height: 480px;
+  object-fit: cover;
+  background-color: #d9d9d9;
+}
+
+.text-block {
+  margin-top: 2em;
+  max-width: 680px;
+}
+
+.doc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1em;
   margin-top: 2em;
 }
 
-.assignment a {
-  color: #000;
-  text-decoration: none;
-}
-
-.assignment a:hover {
-  color: #f06;
-}
-
-.assignment img {
-  aspect-ratio: 1;
+.doc-grid img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
+  background-color: #d9d9d9;
 }
 
-.assignment p {
+.insights {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
   margin-top: 0.5em;
+}
+
+.ai-note {
+  margin-top: 3em;
+  padding-top: 1.5em;
+  border-top: 1px solid #e5e5e5;
 }
