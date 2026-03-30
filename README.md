@@ -114,7 +114,7 @@ If you want to publish your site publicly, GitHub Pages is a free way to do it. 
 
 To enable it: go to your GitHub repo in your web browser, click the **Settings** tab, then **Pages** in the left sidebar. Under "Source", select **main** as the branch and **/docs** as the folder. Click **Save**. Your site will be published at `yourusername.github.io/hcde536` after a few minutes.
 
-Every time you push changes to GitHub, your site will automatically update. If you'd rather not publish publicly, you can still use this repo to organize your files and preview them locally with Live Server.
+Every time you push changes to GitHub, your site will automatically update.
 
 ## Customizing your site
 
