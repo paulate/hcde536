@@ -129,6 +129,10 @@ Start by reading through `docs/index.html` and understanding how each part corre
 
 When you are done, commit and push your changes to publish your site.
 
+### File size limitations
+
+[Github limits file uploads](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github) to 25mb, so if you're showing video or photo larger than 25mb, you'll have to either downsize or host it elsewhere (e.g. youtube, vimeo, wikimedia) and embed it or link to it.
+
 ### Web resources
 
 The MDN Web Docs are a fantastic resource:
