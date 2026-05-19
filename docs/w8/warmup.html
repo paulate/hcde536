@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>W8 — Video Cut Editor</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #111;
+      color: #ddd;
+      min-height: 100vh;
+      padding: 28px 32px;
+    }
+    h1 {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .preview-wrap {
+      position: relative;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      aspect-ratio: 16/9;
+    }
+    #pc {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+    #po {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      pointer-events: none;
+    }
+    #po i { font-size: 32px; color: rgba(255,255,255,0.2); }
+    #po span { font-size: 13px; color: rgba(255,255,255,0.3); }
+    #ci {
+      display: none;
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.6);
+      font-weight: 500;
+    }
+    .clips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .clip-panel {
+      background: #1c1c1c;
+      border-radius: 12px;
+      border: 0.5px solid rgba(255,255,255,0.08);
+      padding: 16px;
+    }
+    .clip-label {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+    .clip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .drop-zone {
+      position: relative;
+      background: #000;
+      border-radius: 8px;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px dashed #333;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .drop-zone:hover { border-color: #555; }
+    .drop-zone.loaded { border: 1px solid transparent; }
+    .drop-zone.drag-over { border-style: solid !important; background: rgba(255,255,255,0.03) !important; }
+    .drop-zone video {
+      display: none;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .upload-hint {
+      color: #444;
+      font-size: 12px;
+      text-align: center;
+      pointer-events: none;
+    }
+    .upload-hint i { font-size: 22px; display: block; margin-bottom: 5px; }
+    .timeline-track {
+      height: 36px;
+      background: #0d0d0d;
+      border-radius: 6px;
+      position: relative;
+      border: 0.5px solid rgba(255,255,255,0.07);
+      user-select: none;
+      overflow: visible;
+    }
+    .trim-region {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      pointer-events: none;
+    }
+    .trim-handle {
+      position: absolute;
+      top: 0;
+      width: 10px;
+      height: 100%;
+      border-radius: 3px;
+      cursor: ew-resize;
+      transform: translateX(-50%);
+      z-index: 5;
+    }
+    .playhead {
+      display: none;
+      position: absolute;
+      top: -3px;
+      width: 2px;
+      height: calc(100% + 6px);
+      background: rgba(255,255,255,0.7);
+      pointer-events: none;
+      z-index: 3;
+      transform: translateX(-50%);
+    }
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #555;
+      margin-top: 5px;
+    }
+    .export-bar {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    #exportBtn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1c1c1c;
+      border: 1px solid #333;
+      color: #aaa;
+      padding: 9px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #exportBtn:not(:disabled):hover { border-color: #888; color: #fff; }
+    #exportBtn:disabled { opacity: 0.35; cursor: default; }
+    .export-progress-wrap { flex: 1; display: none; }
+    .export-progress-track {
+      height: 3px;
+      background: #222;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    #exportFill {
+      height: 100%;
+      width: 0%;
+      background: #888;
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+    #exportLabel { font-size: 10px; color: #555; letter-spacing: 1px; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+  <h1>Video cut editor — W8 warmup</h1>
+
+  <div class="preview-wrap">
+    <canvas id="pc"></canvas>
+    <div id="po">
+      <i class="ti ti-scissors"></i>
+      <span>Upload both clips to preview the cut</span>
+    </div>
+    <div id="ci"></div>
+  </div>
+
+  <div class="clips-grid">
+
+    <!-- Clip 1 -->
+    <div class="clip-panel">
+      <div class="clip-label">
+        <span class="clip-dot" style="background:#f5a623;"></span>
+        Clip 1 — wide / context
+      </div>
+      <div class="drop-zone" id="drop1" onclick="document.getElementById('f1').click()">
+        <input type="file" id="f1" accept="video/*" style="display:none" onchange="loadClip(1,this)">
+        <video id="v1" muted playsinline></video>
+        <div class="upload-hint" id="hint1">
+          <i class="ti ti-upload"></i>
+          click or drop video
+        </div>
+      </div>
+      <div class="timeline-track" id="tl1">
+        <div class="trim-region" id="tr1" style="background:rgba(245,166,35,0.15); border-left:2px solid #f5a623; border-right:2px solid #f5a623;"></div>
+        <div class="playhead" id="ph1"></div>
+        <div class="trim-handle" id="hs1" style="background:#f5a623; left:0%;"></div>
+        <div class="trim-handle" id="he1" style="background:#f5a623; left:100%;"></div>
+      </div>
+      <div class="time-row">
+        <span id="ts1">0.0s</span><span id="td1">—</span><span id="te1">0.0s</span>
+      </div>
+    </div>
+
+    <!-- Clip 2 -->
+    <div class="clip-panel">
+      <div class="clip-label">
+        <span class="clip-dot" style="background:#4fc3f7;"></span>
+        Clip 2 — close-up / detail
+      </div>
+      <div class="drop-zone" id="drop2" onclick="document.getElementById('f2').click()">
+        <input type="file" id="f2" accept="video/*" style="display:none" onchange="loadClip(2,this)">
+        <video id="v2" muted playsinline></video>
+        <div class="upload-hint" id="hint2">
+          <i class="ti ti-upload"></i>
+          click or drop video
+        </div>
+      </div>
+      <div class="timeline-track" id="tl2">
+        <div class="trim-region" id="tr2" style="background:rgba(79,195,247,0.15); border-left:2px solid #4fc3f7; border-right:2px solid #4fc3f7;"></div>
+        <div class="playhead" id="ph2"></div>
+        <div class="trim-handle" id="hs2" style="background:#4fc3f7; left:0%;"></div>
+        <div class="trim-handle" id="he2" style="background:#4fc3f7; left:100%;"></div>
+      </div>
+      <div class="time-row">
+        <span id="ts2">0.0s</span><span id="td2">—</span><span id="te2">0.0s</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="export-bar">
+    <button id="exportBtn" onclick="exportCut()" disabled>
+      <i class="ti ti-download"></i> Export cut
+    </button>
+    <div class="export-progress-wrap" id="exportProgressWrap">
+      <div class="export-progress-track"><div id="exportFill"></div></div>
+      <div id="exportLabel">—</div>
+    </div>
+  </div>
+
+  <script>
+    const clips = {
+      1: { loaded: false, duration: 0, trimStart: 0, trimEnd: 0 },
+      2: { loaded: false, duration: 0, trimStart: 0, trimEnd: 0 }
+    };
+    const colors = { 1: '#f5a623', 2: '#4fc3f7' };
+    let activeClip = 1;
+    let rafId = null;
+    let drag = null;
+    let switching = false;
+
+    function loadClipFromFile(n, file) {
+      const url = URL.createObjectURL(file);
+      const vid = document.getElementById('v' + n);
+      vid.src = url;
+      vid.onloadedmetadata = () => {
+        const dur = isFinite(vid.duration) && vid.duration > 0 ? vid.duration : 10;
+        clips[n] = { loaded: true, duration: dur, trimStart: 0, trimEnd: dur };
+        document.getElementById('hint' + n).style.display = 'none';
+        vid.style.display = 'block';
+        document.getElementById('drop' + n).classList.add('loaded');
+        document.getElementById('td' + n).textContent = dur.toFixed(1) + 's';
+        updateUI(n);
+        bindHandles(n);
+        maybeStart();
+      };
+    }
+
+    function loadClip(n, inp) {
+      const file = inp.files[0];
+      if (!file) return;
+      loadClipFromFile(n, file);
+    }
+
+    function updateUI(n) {
+      const { duration: dur, trimStart: s, trimEnd: e } = clips[n];
+      if (!dur) return;
+      const ps = s / dur, pe = e / dur;
+      document.getElementById('hs' + n).style.left = (ps * 100) + '%';
+      document.getElementById('he' + n).style.left = (pe * 100) + '%';
+      document.getElementById('tr' + n).style.left = (ps * 100) + '%';
+      document.getElementById('tr' + n).style.width = ((pe - ps) * 100) + '%';
+      document.getElementById('ts' + n).textContent = s.toFixed(1) + 's';
+      document.getElementById('te' + n).textContent = e.toFixed(1) + 's';
+    }
+
+    function bindHandles(n) {
+      ['s', 'e'].forEach(side => {
+        const el = document.getElementById('h' + side + n);
+        if (el._bound) return;
+        el._bound = true;
+        el.addEventListener('mousedown', ev => {
+          drag = { n, side };
+          ev.preventDefault();
+          ev.stopPropagation();
+        });
+      });
+    }
+
+    document.addEventListener('mousemove', ev => {
+      if (!drag) return;
+      const { n, side } = drag;
+      const track = document.getElementById('tl' + n);
+      const rect = track.getBoundingClientRect();
+      const p = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+      const t = p * clips[n].duration;
+      if (side === 's') {
+        clips[n].trimStart = Math.max(0, Math.min(t, clips[n].trimEnd - 0.3));
+      } else {
+        clips[n].trimEnd = Math.min(clips[n].duration, Math.max(t, clips[n].trimStart + 0.3));
+      }
+      updateUI(n);
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (drag && clips[drag.n].loaded) {
+        const n = drag.n;
+        const vn = document.getElementById('v' + n);
+        if (vn.currentTime < clips[n].trimStart || vn.currentTime >= clips[n].trimEnd) {
+          vn.currentTime = clips[n].trimStart;
+        }
+      }
+      drag = null;
+    });
+
+    function maybeStart() {
+      if (!clips[1].loaded || !clips[2].loaded) return;
+      document.getElementById('po').style.display = 'none';
+      document.getElementById('ci').style.display = 'block';
+      document.getElementById('ph1').style.display = 'block';
+      document.getElementById('ph2').style.display = 'block';
+      document.getElementById('exportBtn').disabled = false;
+      startPreview();
+    }
+
+    function playFrom(vid, time, onReady) {
+      vid.pause();
+      const go = () => { vid.play().catch(() => {}); if (onReady) onReady(); };
+      if (Math.abs(vid.currentTime - time) < 0.001) {
+        go();
+      } else {
+        vid.currentTime = time;
+        vid.addEventListener('seeked', go, { once: true });
+      }
+    }
+
+    function startPreview() {
+      if (rafId) cancelAnimationFrame(rafId);
+      switching = false;
+      const v1 = document.getElementById('v1');
+      const v2 = document.getElementById('v2');
+      const canvas = document.getElementById('pc');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1280;
+      canvas.height = 720;
+      activeClip = 1;
+      v2.pause();
+      playFrom(v1, clips[1].trimStart);
+
+      function tick() {
+        const v = activeClip === 1 ? v1 : v2;
+        if (v.readyState >= 2) ctx.drawImage(v, 0, 0, 1280, 720);
+        for (let n = 1; n <= 2; n++) {
+          const vn = n === 1 ? v1 : v2;
+          const ph = document.getElementById('ph' + n);
+          if (clips[n].duration > 0) ph.style.left = (vn.currentTime / clips[n].duration * 100) + '%';
+        }
+        const ci = document.getElementById('ci');
+        ci.textContent = 'Clip ' + activeClip;
+        ci.style.color = colors[activeClip];
+
+        const a = activeClip;
+        const va = a === 1 ? v1 : v2;
+        const margin = Math.min(0.12, (clips[a].trimEnd - clips[a].trimStart) * 0.1);
+        if (!switching && (va.ended || va.currentTime >= clips[a].trimEnd - margin)) {
+          if (drag && drag.n === a) {
+            // clip being edited hit its end — loop it instead of switching
+            va.currentTime = clips[a].trimStart;
+            if (va.paused) va.addEventListener('seeked', () => va.play().catch(() => {}), { once: true });
+          } else {
+            switching = true;
+            const next = a === 1 ? 2 : 1;
+            activeClip = next;
+            playFrom(a === 1 ? v2 : v1, clips[next].trimStart, () => { switching = false; });
+          }
+        }
+        rafId = requestAnimationFrame(tick);
+      }
+      tick();
+    }
+
+    function restartPreview() { startPreview(); }
+
+    function renderClipToCanvas(vid, start, end, ec, ectx, onProgress) {
+      return new Promise(resolve => {
+        const doRender = () => {
+          vid.play().catch(() => {});
+          let raf;
+          const frame = () => {
+            ectx.drawImage(vid, 0, 0, ec.width, ec.height);
+            const pct = Math.min(1, (vid.currentTime - start) / Math.max(0.001, end - start));
+            onProgress(pct);
+            if (vid.ended || vid.currentTime >= end - 0.05) {
+              vid.pause();
+              cancelAnimationFrame(raf);
+              resolve();
+              return;
+            }
+            raf = requestAnimationFrame(frame);
+          };
+          raf = requestAnimationFrame(frame);
+        };
+        vid.pause();
+        if (Math.abs(vid.currentTime - start) < 0.001) {
+          doRender();
+        } else {
+          vid.currentTime = start;
+          vid.addEventListener('seeked', doRender, { once: true });
+        }
+      });
+    }
+
+    async function exportCut() {
+      const btn = document.getElementById('exportBtn');
+      if (btn.disabled) return;
+      btn.disabled = true;
+
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      const v1 = document.getElementById('v1');
+      const v2 = document.getElementById('v2');
+      v1.pause(); v2.pause();
+
+      const ec = document.createElement('canvas');
+      ec.width = 1280; ec.height = 720;
+      const ectx = ec.getContext('2d');
+
+      const mimeTypes = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/mp4','video/webm'];
+      const mimeType = mimeTypes.find(t => MediaRecorder.isTypeSupported(t)) || '';
+      const stream = ec.captureStream(30);
+      const recorder = new MediaRecorder(stream, {
+        ...(mimeType ? { mimeType } : {}),
+        videoBitsPerSecond: 8_000_000
+      });
+
+      const chunks = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const blob = new Blob(chunks, { type: mimeType || 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'cut.' + ext;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        btn.innerHTML = '<i class="ti ti-download"></i> Export cut';
+        btn.disabled = false;
+        document.getElementById('exportProgressWrap').style.display = 'none';
+        startPreview();
+      };
+
+      document.getElementById('exportProgressWrap').style.display = 'block';
+      btn.innerHTML = '<i class="ti ti-loader-2"></i> Exporting…';
+
+      const dur1 = clips[1].trimEnd - clips[1].trimStart;
+      const dur2 = clips[2].trimEnd - clips[2].trimStart;
+      const total = dur1 + dur2;
+      const setProgress = elapsed => {
+        document.getElementById('exportFill').style.width = Math.round(elapsed / total * 100) + '%';
+      };
+
+      recorder.start(200);
+
+      document.getElementById('exportLabel').textContent = 'Clip 1 of 2';
+      await renderClipToCanvas(v1, clips[1].trimStart, clips[1].trimEnd, ec, ectx,
+        p => setProgress(dur1 * p));
+
+      document.getElementById('exportLabel').textContent = 'Clip 2 of 2';
+      await renderClipToCanvas(v2, clips[2].trimStart, clips[2].trimEnd, ec, ectx,
+        p => setProgress(dur1 + dur2 * p));
+
+      document.getElementById('exportLabel').textContent = 'Finishing…';
+      recorder.stop();
+    }
+
+    function setupDrop(n) {
+      const zone = document.getElementById('drop' + n);
+      zone.addEventListener('dragover', ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        zone.classList.add('drag-over');
+        zone.style.borderColor = colors[n];
+      });
+      zone.addEventListener('dragleave', ev => {
+        if (!zone.contains(ev.relatedTarget)) {
+          zone.classList.remove('drag-over');
+          zone.style.borderColor = '';
+        }
+      });
+      zone.addEventListener('drop', ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        zone.classList.remove('drag-over');
+        zone.style.borderColor = '';
+        const file = ev.dataTransfer.files[0];
+        if (file && file.type.startsWith('video/')) loadClipFromFile(n, file);
+      });
+    }
+    setupDrop(1);
+    setupDrop(2);
+  </script>
+
+</body>
+</html>
