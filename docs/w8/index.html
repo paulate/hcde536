@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>W8 — Video Cut Editor</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: #111;
       color: #ddd;
       min-height: 100vh;
     }
+
     .container {
       max-width: 960px;
       margin: 0 auto;
       padding: 28px 32px;
     }
+
     h1 {
       font-size: 13px;
       font-weight: 500;
@@ -26,6 +36,7 @@
       color: #555;
       margin-bottom: 20px;
     }
+
     .preview-wrap {
       position: relative;
       background: #000;
@@ -34,12 +45,14 @@
       margin-bottom: 20px;
       aspect-ratio: 16/9;
     }
+
     #pc {
       display: block;
       width: 100%;
       height: 100%;
       background: #000;
     }
+
     #po {
       position: absolute;
       inset: 0;
@@ -50,8 +63,17 @@
       gap: 10px;
       pointer-events: none;
     }
-    #po i { font-size: 32px; color: rgba(255,255,255,0.2); }
-    #po span { font-size: 13px; color: rgba(255,255,255,0.3); }
+
+    #po i {
+      font-size: 32px;
+      color: rgba(255, 255, 255, 0.2);
+    }
+
+    #po span {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
     #ci {
       display: none;
       position: absolute;
@@ -62,20 +84,23 @@
       text-transform: uppercase;
       padding: 3px 10px;
       border-radius: 4px;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       font-weight: 500;
     }
+
     .clips-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
+
     .clip-panel {
       background: #1c1c1c;
       border-radius: 12px;
-      border: 0.5px solid rgba(255,255,255,0.08);
+      border: 0.5px solid rgba(255, 255, 255, 0.08);
       padding: 16px;
     }
+
     .clip-label {
       font-size: 11px;
       color: #888;
@@ -86,12 +111,14 @@
       gap: 7px;
       margin-bottom: 12px;
     }
+
     .clip-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       flex-shrink: 0;
     }
+
     .drop-zone {
       position: relative;
       background: #000;
@@ -106,9 +133,20 @@
       margin-bottom: 12px;
       transition: border-color 0.2s;
     }
-    .drop-zone:hover { border-color: #555; }
-    .drop-zone.loaded { border: 1px solid transparent; }
-    .drop-zone.drag-over { border-style: solid !important; background: rgba(255,255,255,0.03) !important; }
+
+    .drop-zone:hover {
+      border-color: #555;
+    }
+
+    .drop-zone.loaded {
+      border: 1px solid transparent;
+    }
+
+    .drop-zone.drag-over {
+      border-style: solid !important;
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
+
     .drop-zone video {
       display: none;
       position: absolute;
@@ -117,28 +155,37 @@
       height: 100%;
       object-fit: cover;
     }
+
     .upload-hint {
       color: #444;
       font-size: 12px;
       text-align: center;
       pointer-events: none;
     }
-    .upload-hint i { font-size: 22px; display: block; margin-bottom: 5px; }
+
+    .upload-hint i {
+      font-size: 22px;
+      display: block;
+      margin-bottom: 5px;
+    }
+
     .timeline-track {
       height: 36px;
       background: #0d0d0d;
       border-radius: 6px;
       position: relative;
-      border: 0.5px solid rgba(255,255,255,0.07);
+      border: 0.5px solid rgba(255, 255, 255, 0.07);
       user-select: none;
       overflow: visible;
     }
+
     .trim-region {
       position: absolute;
       top: 0;
       height: 100%;
       pointer-events: none;
     }
+
     .trim-handle {
       position: absolute;
       top: 0;
@@ -149,17 +196,19 @@
       transform: translateX(-50%);
       z-index: 5;
     }
+
     .playhead {
       display: none;
       position: absolute;
       top: -3px;
       width: 2px;
       height: calc(100% + 6px);
-      background: rgba(255,255,255,0.7);
+      background: rgba(255, 255, 255, 0.7);
       pointer-events: none;
       z-index: 3;
       transform: translateX(-50%);
     }
+
     .time-row {
       display: flex;
       justify-content: space-between;
@@ -167,12 +216,14 @@
       color: #555;
       margin-top: 5px;
     }
+
     .export-bar {
       margin-top: 20px;
       display: flex;
       align-items: center;
       gap: 14px;
     }
+
     #exportBtn {
       display: flex;
       align-items: center;
@@ -189,9 +240,22 @@
       white-space: nowrap;
       transition: border-color 0.2s, color 0.2s;
     }
-    #exportBtn:not(:disabled):hover { border-color: #888; color: #fff; }
-    #exportBtn:disabled { opacity: 0.35; cursor: default; }
-    .export-progress-wrap { flex: 1; display: none; }
+
+    #exportBtn:not(:disabled):hover {
+      border-color: #888;
+      color: #fff;
+    }
+
+    #exportBtn:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .export-progress-wrap {
+      flex: 1;
+      display: none;
+    }
+
     .export-progress-track {
       height: 3px;
       background: #222;
@@ -199,6 +263,7 @@
       overflow: hidden;
       margin-bottom: 5px;
     }
+
     #exportFill {
       height: 100%;
       width: 0%;
@@ -206,88 +271,101 @@
       border-radius: 2px;
       transition: width 0.1s linear;
     }
-    #exportLabel { font-size: 10px; color: #555; letter-spacing: 1px; text-transform: uppercase; }
+
+    #exportLabel {
+      font-size: 10px;
+      color: #555;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
   </style>
 </head>
+
 <body>
-<div class="container">
+  <div class="container">
 
-  <h1>Video cut editor — W8 warmup</h1>
+    <h1>Video cut editor — W8 warmup - Claude made this.</h1>
 
-  <div class="preview-wrap">
-    <canvas id="pc"></canvas>
-    <div id="po">
-      <i class="ti ti-scissors"></i>
-      <span>Upload both clips to preview the cut</span>
-    </div>
-    <div id="ci"></div>
-  </div>
-
-  <div class="clips-grid">
-
-    <!-- Clip 1 -->
-    <div class="clip-panel">
-      <div class="clip-label">
-        <span class="clip-dot" style="background:#f5a623;"></span>
-        Clip 1 — wide / context
+    <div class="preview-wrap">
+      <canvas id="pc"></canvas>
+      <div id="po">
+        <i class="ti ti-scissors"></i>
+        <span>Upload both clips to preview the cut</span>
       </div>
-      <div class="drop-zone" id="drop1" onclick="document.getElementById('f1').click()">
-        <input type="file" id="f1" accept="video/*" style="display:none" onchange="loadClip(1,this)">
-        <video id="v1" muted playsinline></video>
-        <div class="upload-hint" id="hint1">
-          <i class="ti ti-upload"></i>
-          click or drop video
+      <div id="ci"></div>
+    </div>
+
+    <div class="clips-grid">
+
+      <!-- Clip 1 -->
+      <div class="clip-panel">
+        <div class="clip-label">
+          <span class="clip-dot" style="background:#f5a623;"></span>
+          Clip 1
+        </div>
+        <div class="drop-zone" id="drop1" onclick="document.getElementById('f1').click()">
+          <input type="file" id="f1" accept="video/*" style="display:none" onchange="loadClip(1,this)">
+          <video id="v1" muted playsinline></video>
+          <div class="upload-hint" id="hint1">
+            <i class="ti ti-upload"></i>
+            click or drop video
+          </div>
+        </div>
+        <div class="timeline-track" id="tl1">
+          <div class="trim-region" id="tr1"
+            style="background:rgba(245,166,35,0.15); border-left:2px solid #f5a623; border-right:2px solid #f5a623;">
+          </div>
+          <div class="playhead" id="ph1"></div>
+          <div class="trim-handle" id="hs1" style="background:#f5a623; left:0%;"></div>
+          <div class="trim-handle" id="he1" style="background:#f5a623; left:100%;"></div>
+        </div>
+        <div class="time-row">
+          <span id="ts1">0.0s</span><span id="td1">—</span><span id="te1">0.0s</span>
         </div>
       </div>
-      <div class="timeline-track" id="tl1">
-        <div class="trim-region" id="tr1" style="background:rgba(245,166,35,0.15); border-left:2px solid #f5a623; border-right:2px solid #f5a623;"></div>
-        <div class="playhead" id="ph1"></div>
-        <div class="trim-handle" id="hs1" style="background:#f5a623; left:0%;"></div>
-        <div class="trim-handle" id="he1" style="background:#f5a623; left:100%;"></div>
-      </div>
-      <div class="time-row">
-        <span id="ts1">0.0s</span><span id="td1">—</span><span id="te1">0.0s</span>
-      </div>
-    </div>
 
-    <!-- Clip 2 -->
-    <div class="clip-panel">
-      <div class="clip-label">
-        <span class="clip-dot" style="background:#4fc3f7;"></span>
-        Clip 2 — close-up / detail
-      </div>
-      <div class="drop-zone" id="drop2" onclick="document.getElementById('f2').click()">
-        <input type="file" id="f2" accept="video/*" style="display:none" onchange="loadClip(2,this)">
-        <video id="v2" muted playsinline></video>
-        <div class="upload-hint" id="hint2">
-          <i class="ti ti-upload"></i>
-          click or drop video
+      <!-- Clip 2 -->
+      <div class="clip-panel">
+        <div class="clip-label">
+          <span class="clip-dot" style="background:#4fc3f7;"></span>
+          Clip 2
+        </div>
+        <div class="drop-zone" id="drop2" onclick="document.getElementById('f2').click()">
+          <input type="file" id="f2" accept="video/*" style="display:none" onchange="loadClip(2,this)">
+          <video id="v2" muted playsinline></video>
+          <div class="upload-hint" id="hint2">
+            <i class="ti ti-upload"></i>
+            click or drop video
+          </div>
+        </div>
+        <div class="timeline-track" id="tl2">
+          <div class="trim-region" id="tr2"
+            style="background:rgba(79,195,247,0.15); border-left:2px solid #4fc3f7; border-right:2px solid #4fc3f7;">
+          </div>
+          <div class="playhead" id="ph2"></div>
+          <div class="trim-handle" id="hs2" style="background:#4fc3f7; left:0%;"></div>
+          <div class="trim-handle" id="he2" style="background:#4fc3f7; left:100%;"></div>
+        </div>
+        <div class="time-row">
+          <span id="ts2">0.0s</span><span id="td2">—</span><span id="te2">0.0s</span>
         </div>
       </div>
-      <div class="timeline-track" id="tl2">
-        <div class="trim-region" id="tr2" style="background:rgba(79,195,247,0.15); border-left:2px solid #4fc3f7; border-right:2px solid #4fc3f7;"></div>
-        <div class="playhead" id="ph2"></div>
-        <div class="trim-handle" id="hs2" style="background:#4fc3f7; left:0%;"></div>
-        <div class="trim-handle" id="he2" style="background:#4fc3f7; left:100%;"></div>
-      </div>
-      <div class="time-row">
-        <span id="ts2">0.0s</span><span id="td2">—</span><span id="te2">0.0s</span>
+
+    </div>
+
+    <div class="export-bar">
+      <button id="exportBtn" onclick="exportCut()" disabled>
+        <i class="ti ti-download"></i> Export cut
+      </button>
+      <div class="export-progress-wrap" id="exportProgressWrap">
+        <div class="export-progress-track">
+          <div id="exportFill"></div>
+        </div>
+        <div id="exportLabel">—</div>
       </div>
     </div>
 
-  </div>
-
-  <div class="export-bar">
-    <button id="exportBtn" onclick="exportCut()" disabled>
-      <i class="ti ti-download"></i> Export cut
-    </button>
-    <div class="export-progress-wrap" id="exportProgressWrap">
-      <div class="export-progress-track"><div id="exportFill"></div></div>
-      <div id="exportLabel">—</div>
-    </div>
-  </div>
-
-</div><!-- .container -->
+  </div><!-- .container -->
 
   <script>
     const clips = {
@@ -386,7 +464,7 @@
 
     function playFrom(vid, time, onReady) {
       vid.pause();
-      const go = () => { vid.play().catch(() => {}); if (onReady) onReady(); };
+      const go = () => { vid.play().catch(() => { }); if (onReady) onReady(); };
       if (Math.abs(vid.currentTime - time) < 0.001) {
         go();
       } else {
@@ -427,7 +505,7 @@
           if (drag && drag.n === a) {
             // clip being edited hit its end — loop it instead of switching
             va.currentTime = clips[a].trimStart;
-            if (va.paused) va.addEventListener('seeked', () => va.play().catch(() => {}), { once: true });
+            if (va.paused) va.addEventListener('seeked', () => va.play().catch(() => { }), { once: true });
           } else {
             switching = true;
             const next = a === 1 ? 2 : 1;
@@ -445,7 +523,7 @@
     function renderClipToCanvas(vid, start, end, ec, ectx, onProgress) {
       return new Promise(resolve => {
         const doRender = () => {
-          vid.play().catch(() => {});
+          vid.play().catch(() => { });
           let raf;
           const frame = () => {
             ectx.drawImage(vid, 0, 0, ec.width, ec.height);
@@ -560,4 +638,5 @@
   </script>
 
 </body>
+
 </html>
